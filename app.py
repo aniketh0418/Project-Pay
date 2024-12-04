@@ -123,7 +123,9 @@ def main():
 
             if login_submit:
                 # client = clients_collection.find_one({"email": email, "phone_number": phone_number})
-                client = clients_collection.find_one({"email": "rapoluav12@gmail.com", "phone_number": "1234567890"})
+                client = clients_collection.find_one({"email": email, "phone_number": phone_number})
+                st.write(client)
+                
                 if client:
                     otp = generate_random_otp()
                     st.session_state.generated_otp = otp
