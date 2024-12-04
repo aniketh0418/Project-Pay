@@ -126,8 +126,8 @@ def main():
                 client_list = list(client_cursor)  # Convert the cursor to a list
 
                 if client_list:
-                    client = client_list[0]  # Access the first document
-                    st.write(f"Client found: {client}")
+                    c = client_list[0]  # Access the first document
+                    st.write(f"Client found: {c}")
                 else:
                     st.error("Client not found.")
 
