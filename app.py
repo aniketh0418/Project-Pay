@@ -123,10 +123,14 @@ def main():
 
             if login_submit:
                 client_cursor = clients_collection.find({"email": email, "phone_number": phone_number})
-                client = None
-                for doc in client_cursor:
-                    client = doc
-                    break
+                client_list = list(client_cursor)  # Convert the cursor to a list
+
+                if client_list:
+                    client = client_list[0]  # Access the first document
+                    st.write(f"Client found: {client}")
+                else:
+                    st.error("Client not found.")
+
                 
                 if client:
                     otp = generate_random_otp()
