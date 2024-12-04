@@ -123,7 +123,7 @@ def main():
 
             if login_submit:
                 if email and phone_number:
-                    client = clients_collection.find_one({"email": email, "phone_number": phone_number})
+                    client = clients_collection.find({"email": email, "phone_number": phone_number})
                     st.write(client)
                 
                     if client:
