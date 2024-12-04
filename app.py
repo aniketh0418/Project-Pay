@@ -1,6 +1,4 @@
 import streamlit as st
-import pymongo
-from pymongo import MongoClient
 from twilio.rest import Client as TwilioClient
 import smtplib
 from email.mime.text import MIMEText
@@ -22,12 +20,6 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-
-# MongoDB Connection
-client = MongoClient(st.secrets['MONGO_URI'])
-db = client[st.secrets['MONGO_DB_NAME']]
-clients_collection = db['clients']
-transactions_collection = db['transactions']
 
 # Twilio Configuration
 twilio_client = TwilioClient(st.secrets['TWILIO_ACCOUNT_SID'], st.secrets['TWILIO_AUTH_TOKEN'])
@@ -94,10 +86,8 @@ def thank_you_page(name):
         """
     )
     st.write("**Interested in more projects or services? Let us help you achieve your goals.**")
-    st.markdown("""
-        - [Aniketh R](https://anikethvardhan.netlify.app)
-        - [Md Waseel](https://mdwaseel.bewebfy.com)
-    """)
+    st.markdown("""- [Aniketh R](https://anikethvardhan.netlify.app)  
+                   - [Md Waseel](https://mdwaseel.bewebfy.com)""")
     st.markdown("### We look forward to working with you again! 😊")
     st.balloons()
 
@@ -105,13 +95,25 @@ def main():
     st.title("Project Payment and Access Portal")
 
     # Initialize session state variables
-    session_vars = ['stage', 'name', 'email', 'phone_number', 'transaction_id', 'generated_otp', 'client_details', 'project_link', 'payment_verification_otp', 'invoice_link']
+    session_vars = ['stage', 'generated_otp', 'payment_verification_otp']
     for var in session_vars:
         if var not in st.session_state:
             st.session_state[var] = None
 
     if st.session_state.stage is None:
         st.session_state.stage = 'login'
+
+    # Client Data from secrets.toml
+    client_data = {
+        "name": st.secrets["client_name"],
+        "email": st.secrets["client_email"],
+        "phone_number": st.secrets["client_phone_number"],
+        "project_name": st.secrets["client_project_name"],
+        "project_category": st.secrets["client_project_category"],
+        "due": st.secrets["client_due"],
+        "project_link": st.secrets["client_project_link"],
+        "invoice": st.secrets["client_invoice"]
+    }
 
     # Login Stage
     if st.session_state.stage == 'login':
@@ -122,23 +124,14 @@ def main():
             login_submit = st.form_submit_button("Send OTP")
 
             if login_submit:
-                client = clients_collection.find_one({"email": email, "phone_number": phone_number})
-                
-                if client:
+                if email == client_data["email"] and phone_number == client_data["phone_number"]:
                     otp = generate_random_otp()
                     st.session_state.generated_otp = otp
-                    st.session_state.email = email
-                    st.session_state.phone_number = phone_number
-                    st.session_state.client_details = client
-
-                    email_sent = send_otp_email(email, otp)
-                    if email_sent:
-                        st.session_state.stage = 'otp_verification'
-                        st.rerun()
-                    else:
-                        st.error("Failed to send OTP. Please try again.")
+                    send_otp_email(email, otp)
+                    st.session_state.stage = 'otp_verification'
+                    st.rerun()
                 else:
-                    st.error("Client not found. Please check your details.")
+                    st.error("Invalid credentials. Please try again.")
 
     # OTP Verification Stage
     elif st.session_state.stage == 'otp_verification':
@@ -157,13 +150,12 @@ def main():
     # Client Dashboard
     elif st.session_state.stage == 'client_details':
         st.header("Client Dashboard")
-        client = st.session_state.client_details
-        st.write(f"**Name:** {client.get('name', 'N/A')}")
-        st.write(f"**Email:** {client.get('email', 'N/A')}")
-        st.write(f"**Phone Number:** {client.get('phone_number', 'N/A')}")
-        st.write(f"**Project Name:** {client.get('project_name', 'N/A')}")
-        st.write(f"**Due Amount:** ₹{client.get('due', 0.0)}")
-        st.markdown(f"[Download Invoice]({st.session_state.invoice_link})")
+        st.write(f"**Name:** {client_data['name']}")
+        st.write(f"**Email:** {client_data['email']}")
+        st.write(f"**Phone Number:** {client_data['phone_number']}")
+        st.write(f"**Project Name:** {client_data['project_name']}")
+        st.write(f"**Due Amount:** ₹{client_data['due']}")
+        st.markdown(f"[Download Invoice]({client_data['invoice']})")
                  
         if st.button("Proceed to Payment"):
             st.session_state.stage = 'payment'
@@ -172,14 +164,13 @@ def main():
     # Payment Stage
     elif st.session_state.stage == 'payment':
         st.header("Payment Details")
-        amount = st.session_state.client_details.get('due', 0.0)
+        amount = client_data["due"]
 
         if amount:
             upi_url = f"upi://pay?pa=your_upi_id&pn=Your Name&am={amount}&cu=INR"
             qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={upi_url}"
             
-            # Center align the QR code
-            col1, col2, col3 = st.columns([1,2,1])
+            col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 st.write(f"Scan the QR code below to pay ₹{amount}")
                 st.image(qr_code_url)
@@ -189,14 +180,12 @@ def main():
             submit_payment = st.form_submit_button("Submit Payment")
 
             if submit_payment:
-                # Generate OTP for payment verification
                 payment_verify_otp = generate_random_otp()
                 st.session_state.payment_verification_otp = payment_verify_otp
-                
                 admin_message = f"""
                 New Payment Submission:
-                Name: {st.session_state.client_details.get('name')}
-                Email: {st.session_state.client_details.get('email')}
+                Name: {client_data['name']}
+                Email: {client_data['email']}
                 Amount: ₹{amount}
                 Transaction Ref: {transaction_ref}
                 OTP for Payment Verification: {payment_verify_otp}
@@ -222,7 +211,7 @@ def main():
     # Project Access Stage
     elif st.session_state.stage == 'project_access':
         st.header("Project Access")
-        download_link = st.session_state.project_link
+        download_link = client_data["project_link"]
         st.markdown(f"[Download Project]({download_link})")
         if st.button("Finish"):
             st.session_state.stage = 'thank_you'
@@ -230,7 +219,7 @@ def main():
 
     # Thank You Page
     elif st.session_state.stage == 'thank_you':
-        thank_you_page(st.session_state.client_details.get('name', 'Client'))
+        thank_you_page(client_data["name"])
 
 if __name__ == "__main__":
     main()
