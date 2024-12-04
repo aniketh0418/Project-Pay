@@ -122,7 +122,7 @@ def main():
             login_submit = st.form_submit_button("Send OTP")
 
             if login_submit:
-                req_client = clients_collection.find_one({"email": email, "phone_number": phone_number})                
+                req_client = clients_collection.find({"email": email, "phone_number": phone_number})                
                 if req_client:
                     otp = generate_random_otp()
                     st.session_state.generated_otp = otp
