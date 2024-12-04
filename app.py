@@ -122,27 +122,23 @@ def main():
             login_submit = st.form_submit_button("Send OTP")
 
             if login_submit:
-                if email and phone_number:
-                    client = clients_collection.find({"email": email, "phone_number": phone_number})
-                    st.write(client)
+                client = clients_collection.find({"email": email, "phone_number": phone_number})
                 
-                    if client:
-                        otp = generate_random_otp()
-                        st.session_state.generated_otp = otp
-                        st.session_state.email = email
-                        st.session_state.phone_number = phone_number
-                        st.session_state.client_details = client
+                if client:
+                    otp = generate_random_otp()
+                    st.session_state.generated_otp = otp
+                    st.session_state.email = email
+                    st.session_state.phone_number = phone_number
+                    st.session_state.client_details = client
 
-                        email_sent = send_otp_email(email, otp)
-                        if email_sent:
-                            st.session_state.stage = 'otp_verification'
-                            st.rerun()
-                        else:
-                            st.error("Failed to send OTP. Please try again.")
+                    email_sent = send_otp_email(email, otp)
+                    if email_sent:
+                        st.session_state.stage = 'otp_verification'
+                        st.rerun()
                     else:
-                        st.error("Client not found. Please check your details.")
+                        st.error("Failed to send OTP. Please try again.")
                 else:
-                    st.error("Could not read data from form")
+                    st.error("Client not found. Please check your details.")
 
     # OTP Verification Stage
     elif st.session_state.stage == 'otp_verification':
