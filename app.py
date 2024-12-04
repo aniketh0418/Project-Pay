@@ -124,7 +124,7 @@ def main():
             if login_submit:
                 client = clients_collection.find({"email": email, "phone_number": phone_number})
                 st.write(client)
-                clr=NONE
+                clr=None
                 for doc in client:
                     crl=doc
                     break
