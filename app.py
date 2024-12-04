@@ -111,8 +111,7 @@ def main():
         "project_name": st.secrets["client_project_name"],
         "project_category": st.secrets["client_project_category"],
         "due": st.secrets["client_due"],
-        "project_link": st.secrets["client_project_link"],
-        "invoice": st.secrets["client_invoice"]
+        "project_link": st.secrets["client_project_link"]
     }
 
     # Login Stage
@@ -155,7 +154,6 @@ def main():
         st.write(f"**Phone Number:** {client_data['phone_number']}")
         st.write(f"**Project Name:** {client_data['project_name']}")
         st.write(f"**Due Amount:** ₹{client_data['due']}")
-        st.markdown(f"[Download Invoice]({client_data['invoice']})")
                  
         if st.button("Proceed to Payment"):
             st.session_state.stage = 'payment'
@@ -172,7 +170,7 @@ def main():
             
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                st.write(f"Scan the QR code below to pay ₹{amount}")
+                st.write(f"Scan the QR code below to pay 👇🏻")
                 st.image(qr_code_url)
 
         with st.form("payment_confirmation"):
