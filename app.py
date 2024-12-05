@@ -165,8 +165,9 @@ def main():
         amount = client_data["due"]
 
         if amount:
-            upi_url = f"upi://pay?pa=your_upi_id&pn=Your Name&am={amount}&cu=INR"
-            qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={upi_url}"
+            upi_url = f"upi://pay?pa=mdwaseel2311-1@oksbi&pn=Md%20Waseel&am={amount}&cu=INR&aid=uGICAgMDwqtHpfA"
+            encoded_upi_url = upi_url.replace(":", "%3A").replace("/", "%2F").replace("?", "%3F").replace("&", "%26").replace("=", "%3D")
+            qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encoded_upi_url}"
             
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
