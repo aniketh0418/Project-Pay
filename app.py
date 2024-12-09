@@ -86,8 +86,8 @@ def thank_you_page(name):
         """
     )
     st.write("**Interested in more projects or services? Let us help you achieve your goals.**")
-    st.markdown("""[Aniketh R](https://anikethvardhan.netlify.app)
-    [Md Waseel](https://mdwaseel.bewebfy.com)""")
+    st.markdown("""- [Aniketh R](https://anikethvardhan.netlify.app)
+    - [Md Waseel](https://mdwaseel.bewebfy.com)""")
     st.markdown("### We look forward to working with you again! 😊")
     st.balloons()
 
